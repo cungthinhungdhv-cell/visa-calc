@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор визы — ITRIPSTER</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .lang-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #888;
+        }
+
+        .lang-btn:hover {
+            color: #fff;
+        }
+
+        .lang-btn.active {
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            color: #fff;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .calculator-box {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(0, 212, 255, 0.1));
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .calc-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .calc-tab {
+            flex: 1;
+            padding: 14px 20px;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .calc-tab:hover {
+            color: #fff;
+            background: rgba(124, 58, 237, 0.2);
+        }
+
+        .calc-tab.active {
+            background: linear-gradient(90deg, #7c3aed, #00d4ff);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .calc-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .calc-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .calc-field label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .calc-field input,
+        .calc-field select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .calc-field input:focus,
+        .calc-field select:focus {
+            outline: none;
+            border-color: #7c3aed;
+        }
+
+        .calc-results {
+            margin-top: 25px;
+            display: none;
+        }
+
+        .calc-results.visible {
+            display: block;
+        }
+
+        .calc-result-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .calc-result-card.available {
+            border-left: 4px solid #10b981;
+        }
+
+        .calc-result-card.urgent {
+            border-left: 4px solid #fbbf24;
+        }
+
+        .calc-result-card.unavailable {
+            border-left: 4px solid #ef4444;
+            opacity: 0.5;
+        }
+
+        .calc-result-card .option-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .calc-result-card .deadline-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .calc-result-card .deadline-main {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .calc-result-card.urgent .deadline-main {
+            color: #fbbf24;
+        }
+
+        .calc-result-card.unavailable .deadline-main {
+            color: #ef4444;
+        }
+
+        .calc-result-card .deadline-sub {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .calc-result-card .price {
+            color: #00d4ff;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .weekend-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            color: #ef4444;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .weekend-warning.visible {
+            display: block;
+        }
+
+        .calc-summary {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .calc-summary.visible {
+            display: block;
+        }
+
+        .calc-summary-text {
+            color: #e8e8e8;
+            font-size: 1rem;
+        }
+
+        .calc-summary-text strong {
+            color: #00d4ff;
+        }
+
+        .contact-box {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .contact-box a {
+            color: #00d4ff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-box a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px 10px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .calculator-box {
+                padding: 20px 15px;
+            }
+            .calc-result-card {
+                grid-template-columns: 60px 1fr auto;
+                padding: 14px 12px;
+                gap: 10px;
+            }
+            .calc-result-card .option-name {
+                font-size: 1rem;
+            }
+            .calc-result-card .price {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="lang-switcher">
+        <button class="lang-btn active" onclick="switchLang('ru')">RU</button>
+        <button class="lang-btn" onclick="switchLang('vi')">VN</button>
+    </div>
+
+    <div class="container">
+        <h1 data-ru="🧮 Калькулятор визы" data-vi="🧮 Tính toán visa">🧮 Калькулятор визы</h1>
+        <p class="subtitle" data-ru="Узнайте стоимость и сроки оформления e-visa во Вьетнам" data-vi="Tính chi phí và thời gian làm e-visa Việt Nam">Узнайте стоимость и сроки оформления e-visa во Вьетнам</p>
+
+        <div class="calculator-box">
+            <div class="calc-tabs">
+                <button class="calc-tab active" data-mode="arrival" data-ru="✈️ Когда подать?" data-vi="✈️ Gửi khi nào?">✈️ Когда подать?</button>
+                <button class="calc-tab" data-mode="submit" data-ru="📤 Когда будет готово?" data-vi="📤 Khi nào xong?">📤 Когда будет готово?</button>
+            </div>
+
+            <!-- Режим 1: Когда прилетает → Когда подать -->
+            <div class="calc-mode" id="calc-mode-arrival">
+                <div class="calc-inputs">
+                    <div class="calc-field">
+                        <label>✈️ <span data-ru="Когда прилетаете?" data-vi="Khi nào đến?">Когда прилетаете?</span></label>
+                        <input type="date" id="calc-date">
+                    </div>
+                    <div class="calc-field">
+                        <label>🕐 <span data-ru="Во сколько?" data-vi="Mấy giờ?">Во сколько?</span></label>
+                        <input type="time" id="calc-time" value="12:00">
+                    </div>
+                    <div class="calc-field">
+                        <label>📍 <span data-ru="Куда летите?" data-vi="Bay đến đâu?">Куда летите?</span></label>
+                        <select id="calc-region">
+                            <option value="north" data-ru="🌏 Ханой / Да Нанг" data-vi="🌏 Hà Nội / Đà Nẵng">🌏 Ханой / Да Нанг</option>
+                            <option value="south" data-ru="🌴 Хошимин / Нячанг / Фукуок" data-vi="🌴 TP.HCM / Nha Trang / Phú Quốc">🌴 Хошимин / Нячанг / Фукуок</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Режим 2: Когда подаю → Когда будет готово -->
+            <div class="calc-mode" id="calc-mode-submit" style="display: none;">
+                <div class="calc-inputs" style="grid-template-columns: 1fr 1fr;">
+                    <div class="calc-field">
+                        <label>📤 <span data-ru="Когда подаёте?" data-vi="Khi nào gửi?">Когда подаёте?</span></label>
+                        <input type="date" id="calc-submit-date" autocomplete="off">
+                    </div>
+                    <div class="calc-field">
+                        <label>🕐 <span data-ru="Во сколько?" data-vi="Mấy giờ?">Во сколько?</span></label>
+                        <input type="time" id="calc-submit-time" value="10:00">
+                    </div>
+                    <div class="calc-field">
+                        <label>🎯 <span data-ru="Когда должно быть готово?" data-vi="Cần xong khi nào?">Когда должно быть готово? <span style="font-size:0.75em;color:#64748b">(опционально)</span></span></label>
+                        <input type="date" id="calc-submit-deadline" autocomplete="off">
+                    </div>
+                    <div class="calc-field">
+                        <label>🕐 <span data-ru="Время дедлайна" data-vi="Giờ deadline">Время дедлайна <span style="font-size:0.75em;color:#64748b">(опционально)</span></span></label>
+                        <input type="time" id="calc-submit-deadline-time" autocomplete="off">
+                    </div>
+                    <div class="calc-field" style="grid-column: 1 / -1;">
+                        <label>📍 <span data-ru="Куда летите?" data-vi="Bay đến đâu?">Куда летите?</span></label>
+                        <select id="calc-submit-region">
+                            <option value="north" data-ru="🌏 Ханой / Да Нанг" data-vi="🌏 Hà Nội / Đà Nẵng">🌏 Ханой / Да Нанг</option>
+                            <option value="south" data-ru="🌴 Хошимин / Нячанг / Фукуок" data-vi="🌴 TP.HCM / Nha Trang / Phú Quốc">🌴 Хошимин / Нячанг / Фукуок</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calc-summary" id="calc-summary"></div>
+
+            <div class="weekend-warning" id="weekend-warning">
+                🚫 <span data-ru="Прилёт в выходной! Визы в СБ и ВС не делают — крайний день подачи в пятницу." data-vi="Đến vào cuối tuần! Visa không xử lý T7/CN — hạn cuối nộp thứ 6.">Прилёт в выходной! Визы в СБ и ВС не делают — крайний день подачи в пятницу.</span>
+            </div>
+
+            <div class="weekend-warning" id="tet-warning" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4);">
+                🧧 <span data-ru="Тет 2026! Миграционная служба не работает 14–22 февраля. Визы в эти дни не делаем." data-vi="Tết 2026! Cục XNC nghỉ 14–22/02. Không xử lý visa trong thời gian này.">Тет 2026! Миграционная служба не работает 14–22 февраля. Визы в эти дни не делаем.</span>
+            </div>
+
+            <div class="weekend-warning" id="weekend-warning-submit" style="display: none;">
+                📅 <span id="weekend-warning-submit-text">Выходной — в работу пойдёт в понедельник</span>
+            </div>
+
+            <div class="weekend-warning" id="tet-warning-submit" style="display: none; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4);">
+                🧧 <span id="tet-warning-submit-text">Тет 2026! Миграционная служба не работает 14–22 февраля.</span>
+            </div>
+
+            <div class="calc-results" id="calc-results">
+                <div id="calc-options"></div>
+            </div>
+        </div>
+
+        <div class="contact-box">
+            <p data-ru="Для оформления визы свяжитесь с нами:" data-vi="Liên hệ làm visa:">Для оформления визы свяжитесь с нами:</p>
+            <p style="margin-top: 10px;">
+                <a href="https://t.me/Vietnam_Translator" target="_blank">Telegram: @Vietnam_Translator</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Цены для клиентов (USD)
+        const clientPrices = {
+            north: { '1h': 145, '2h': 110, '4h': 82, '1d': 75, '2d': 65, '3d': 58, '4d': 52 },
+            south: { '1h': 170, '2h': 135, '4h': 107, '1d': 100, '2d': 90, '3d': 83, '4d': 77 }
+        };
+
+        const optionNames = {
+            '1h': { ru: '1 час', vi: '1 giờ' },
+            '2h': { ru: '2 часа', vi: '2 giờ' },
+            '4h': { ru: '4 часа', vi: '4 giờ' },
+            '1d': { ru: '1 день', vi: '1 ngày' },
+            '2d': { ru: '2 дня', vi: '2 ngày' },
+            '3d': { ru: '3 дня', vi: '3 ngày' },
+            '4d': { ru: '4 дня', vi: '4 ngày' }
+        };
+
+        const visaOptions = {
+            north: [
+                { key: '1h', slots: [
+                    { deadlineTime: 11*60, resultTime: 12*60, daysOffset: 0, label: 'утро' },
+                    { deadlineTime: 17*60+30, resultTime: 18*60+30, daysOffset: 0, label: 'вечер' }
+                ]},
+                { key: '2h', slots: [
+                    { deadlineTime: 9*60+30, resultTime: 11*60+30, daysOffset: 0, label: 'утро' },
+                    { deadlineTime: 15*60+30, resultTime: 17*60+30, daysOffset: 0, label: 'вечер' }
+                ]},
+                { key: '4h', slots: [
+                    { deadlineTime: 8*60+30, resultTime: 11*60+30, daysOffset: 0, label: 'утро' },
+                    { deadlineTime: 14*60+30, resultTime: 17*60+30, daysOffset: 0, label: 'вечер' }
+                ]},
+                { key: '1d', slots: [
+                    { deadlineTime: 10*60+30, resultTime: 17*60+30, daysOffset: 0, label: 'утро→вечер' },
+                    { deadlineTime: 15*60+30, resultTime: 11*60+30, daysOffset: 1, label: 'вечер→завтра' }
+                ]},
+                { key: '2d', slots: [
+                    { deadlineTime: 18*60+30, resultTime: 17*60+30, daysOffset: 1, label: '' }
+                ]},
+                { key: '3d', slots: [
+                    { deadlineTime: 18*60+30, resultTime: 17*60+30, daysOffset: 2, label: '' }
+                ]},
+                { key: '4d', slots: [
+                    { deadlineTime: 18*60+30, resultTime: 17*60+30, daysOffset: 3, label: '' }
+                ]}
+            ],
+            south: [
+                { key: '1h', slots: [
+                    { deadlineTime: 10*60, resultTime: 11*60, daysOffset: 0, label: 'утро' },
+                    { deadlineTime: 16*60, resultTime: 17*60, daysOffset: 0, label: 'вечер' }
+                ]},
+                { key: '2h', slots: [
+                    { deadlineTime: 9*60, resultTime: 11*60, daysOffset: 0, label: 'утро' },
+                    { deadlineTime: 15*60, resultTime: 17*60, daysOffset: 0, label: 'вечер' }
+                ]},
+                { key: '4h', slots: [
+                    { deadlineTime: 8*60, resultTime: 10*60+30, daysOffset: 0, label: 'утро' },
+                    { deadlineTime: 14*60, resultTime: 16*60+30, daysOffset: 0, label: 'вечер' }
+                ]},
+                { key: '1d', slots: [
+                    { deadlineTime: 9*60, resultTime: 16*60+30, daysOffset: 0, label: 'утро→вечер' },
+                    { deadlineTime: 16*60, resultTime: 10*60+30, daysOffset: 1, label: 'вечер→завтра' }
+                ]}
+            ]
+        };
+
+        // Тет 2026: миграционная служба не работает 14–22 февраля
+        const TET_2026_START = new Date('2026-02-14');
+        const TET_2026_END = new Date('2026-02-22');
+
+        function isTetHoliday(date) {
+            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            return d >= TET_2026_START && d <= TET_2026_END;
+        }
+
+        function isNonWorkday(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6 || isTetHoliday(date);
+        }
+
+        function isWeekend(date) {
+            return isNonWorkday(date);
+        }
+
+        function getPrevWorkday(date) {
+            const d = new Date(date);
+            do {
+                d.setDate(d.getDate() - 1);
+            } while (isWeekend(d));
+            return d;
+        }
+
+        function addWorkdays(date, days) {
+            const d = new Date(date);
+            let added = 0;
+            while (added < days) {
+                d.setDate(d.getDate() + 1);
+                if (!isWeekend(d)) added++;
+            }
+            return d;
+        }
+
+        function getLang() {
+            return document.documentElement.lang === 'vi' ? 'vi' : 'ru';
+        }
+
+        function formatDate(date, lang) {
+            const locale = lang === 'vi' ? 'vi-VN' : 'ru-RU';
+            return date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+        }
+
+        function formatTime(minutes) {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return h + ':' + (m < 10 ? '0' : '') + m;
+        }
+
+        function formatLocalDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // --- Переключение языка ---
+        function switchLang(lang) {
+            document.documentElement.lang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.trim() === (lang === 'ru' ? 'RU' : 'VN'));
+            });
+            document.querySelectorAll('[data-ru]').forEach(el => {
+                el.textContent = el.getAttribute('data-' + lang);
+            });
+            document.querySelectorAll('select option[data-ru]').forEach(opt => {
+                opt.textContent = opt.getAttribute('data-' + lang);
+            });
+            // Пересчитать
+            if (currentCalcMode === 'arrival') {
+                calculateVisa();
+            } else {
+                calculateVisaReverse();
+            }
+        }
+
+        // --- Режим 1: Когда прилетает → Когда подать ---
+        function calculateVisa() {
+            const dateInput = document.getElementById('calc-date').value;
+            const timeInput = document.getElementById('calc-time').value;
+            const region = document.getElementById('calc-region').value;
+
+            if (!dateInput || !timeInput) return;
+
+            const arrivalDate = new Date(dateInput + 'T' + timeInput);
+            const arrivalMinutes = arrivalDate.getHours() * 60 + arrivalDate.getMinutes();
+            const options = visaOptions[region];
+            const prices = clientPrices[region];
+
+            const weekendWarning = document.getElementById('weekend-warning');
+            const tetWarning = document.getElementById('tet-warning');
+            const isArrivalWeekend = isWeekend(arrivalDate);
+            const isArrivalTet = isTetHoliday(arrivalDate);
+            const daysUntilArrival = (arrivalDate - new Date()) / (1000 * 60 * 60 * 24);
+            weekendWarning.classList.toggle('visible', isArrivalWeekend && !isArrivalTet && daysUntilArrival < 7);
+            tetWarning.classList.toggle('visible', isArrivalTet);
+
+            const resultsDiv = document.getElementById('calc-results');
+            const optionsDiv = document.getElementById('calc-options');
+            optionsDiv.innerHTML = '';
+
+            const now = new Date();
+            const results = [];
+            const lang = getLang();
+
+            const EVENING_RESULT = 17*60+30;
+            const MORNING_RESULT = 11*60+30;
+
+            let resultNeededDate = new Date(arrivalDate);
+            let resultNeededMinutes = arrivalMinutes;
+
+            if (isArrivalWeekend) {
+                resultNeededDate = getPrevWorkday(arrivalDate);
+                resultNeededMinutes = EVENING_RESULT;
+            } else if (arrivalMinutes < MORNING_RESULT) {
+                resultNeededDate = getPrevWorkday(arrivalDate);
+                resultNeededMinutes = EVENING_RESULT;
+            }
+
+            options.forEach(opt => {
+                const price = prices[opt.key];
+                let deadlineDate = null, deadlineTime = null, status, deadlineText, resultInfo = '';
+
+                const targetDates = [
+                    { date: new Date(resultNeededDate), maxTime: resultNeededMinutes },
+                    { date: getPrevWorkday(resultNeededDate), maxTime: EVENING_RESULT }
+                ];
+
+                slotSearch:
+                for (const target of targetDates) {
+                    for (const slot of opt.slots) {
+                        let submitDate = new Date(target.date);
+                        for (let i = 0; i < slot.daysOffset; i++) {
+                            submitDate = getPrevWorkday(submitDate);
+                        }
+
+                        let resultDate = new Date(submitDate);
+                        for (let i = 0; i < slot.daysOffset; i++) {
+                            resultDate = addWorkdays(resultDate, 1);
+                        }
+
+                        const resultDateStr = resultDate.toDateString();
+                        const targetDateStr = target.date.toDateString();
+
+                        if (resultDateStr === targetDateStr && slot.resultTime <= target.maxTime) {
+                            deadlineDate = submitDate;
+                            deadlineTime = slot.deadlineTime;
+                            const resultTimeFormatted = formatTime(slot.resultTime - 30) + '-' + formatTime(slot.resultTime);
+                            resultInfo = formatDate(resultDate, lang) + ' ' + resultTimeFormatted;
+                            break slotSearch;
+                        }
+                    }
+                }
+
+                let deadlineFull = null;
+                let hoursLeft = 0;
+
+                if (deadlineDate && deadlineTime !== null) {
+                    deadlineFull = new Date(deadlineDate);
+                    deadlineFull.setHours(Math.floor(deadlineTime/60), deadlineTime%60, 0, 0);
+
+                    const diffMs = deadlineFull - now;
+                    hoursLeft = diffMs / (1000 * 60 * 60);
+
+                    if (diffMs <= 0) {
+                        status = 'unavailable';
+                    } else if (diffMs < 3*60*60*1000) {
+                        status = 'urgent';
+                    } else {
+                        status = 'available';
+                    }
+
+                    const atWord = lang === 'vi' ? ' lúc ' : ' в ';
+                    deadlineText = formatDate(deadlineDate, lang) + atWord + formatTime(deadlineTime);
+                } else {
+                    deadlineText = lang === 'vi' ? 'Không khả dụng' : 'Недоступно';
+                    status = 'unavailable';
+                    resultInfo = '';
+                }
+
+                results.push({ opt, price, status, deadlineText, resultInfo, deadlineDate, deadlineTime, hoursLeft });
+            });
+
+            const tariffOrder = { '1h': 1, '2h': 2, '4h': 3, '1d': 4, '2d': 5, '3d': 6, '4d': 7 };
+            results.sort((a, b) => {
+                const statusOrder = { available: 0, urgent: 1, unavailable: 2 };
+                if (statusOrder[a.status] !== statusOrder[b.status]) {
+                    return statusOrder[a.status] - statusOrder[b.status];
+                }
+                return tariffOrder[a.opt.key] - tariffOrder[b.opt.key];
+            });
+
+            // Summary
+            const summaryDiv = document.getElementById('calc-summary');
+            const availableCount = results.filter(r => r.status !== 'unavailable').length;
+            if (availableCount > 0) {
+                const cheapest = results.filter(r => r.status !== 'unavailable').reduce((min, r) => r.price < min.price ? r : min);
+                const cheapestName = optionNames[cheapest.opt.key][lang];
+                if (lang === 'vi') {
+                    summaryDiv.innerHTML = `<div class="calc-summary-text">
+                        ✈️ Đến: <strong>${formatDate(arrivalDate, lang)}, ${formatTime(arrivalMinutes)}</strong><br>
+                        ✅ Có <strong>${availableCount}</strong> lựa chọn · Rẻ nhất: <strong>${cheapestName}</strong> - <strong>$${cheapest.price}</strong>
+                    </div>`;
+                } else {
+                    summaryDiv.innerHTML = `<div class="calc-summary-text">
+                        ✈️ Прилёт: <strong>${formatDate(arrivalDate, lang)}, ${formatTime(arrivalMinutes)}</strong><br>
+                        ✅ Доступно вариантов: <strong>${availableCount}</strong> · Выгоднее всего: <strong>${cheapestName}</strong> за <strong>$${cheapest.price}</strong>
+                    </div>`;
+                }
+                summaryDiv.classList.add('visible');
+            } else {
+                if (lang === 'vi') {
+                    summaryDiv.innerHTML = `<div class="calc-summary-text" style="color: #ef4444;">
+                        ✈️ Đến: <strong>${formatDate(arrivalDate, lang)}, ${formatTime(arrivalMinutes)}</strong><br>
+                        ❌ Rất tiếc, tất cả deadline đã qua
+                    </div>`;
+                } else {
+                    summaryDiv.innerHTML = `<div class="calc-summary-text" style="color: #ef4444;">
+                        ✈️ Прилёт: <strong>${formatDate(arrivalDate, lang)}, ${formatTime(arrivalMinutes)}</strong><br>
+                        ❌ К сожалению, все дедлайны уже прошли
+                    </div>`;
+                }
+                summaryDiv.classList.add('visible');
+            }
+
+            // Карточки
+            results.forEach(({ opt, price, status, deadlineText, resultInfo, hoursLeft }) => {
+                const card = document.createElement('div');
+                card.className = 'calc-result-card ' + status;
+
+                let timeLeftText = '';
+                if (hoursLeft > 0) {
+                    if (hoursLeft >= 24) {
+                        const days = Math.floor(hoursLeft / 24);
+                        const hrs = Math.floor(hoursLeft % 24);
+                        timeLeftText = lang === 'vi'
+                            ? `⏰ ${days}n ${hrs}h để gửi`
+                            : `⏰ ${days}д ${hrs}ч на подачу`;
+                    } else if (hoursLeft >= 1) {
+                        const hrs = Math.floor(hoursLeft);
+                        const mins = Math.round((hoursLeft - hrs) * 60);
+                        if (mins > 0) {
+                            timeLeftText = lang === 'vi'
+                                ? `⏰ ${hrs}h ${mins}p để gửi`
+                                : `⏰ ${hrs}ч ${mins}мин на подачу`;
+                        } else {
+                            timeLeftText = lang === 'vi'
+                                ? `⏰ ${hrs}h để gửi`
+                                : `⏰ ${hrs}ч на подачу`;
+                        }
+                    } else {
+                        const mins = Math.round(hoursLeft * 60);
+                        timeLeftText = lang === 'vi'
+                            ? `⏰ ${mins} phút để gửi`
+                            : `⏰ ${mins} мин на подачу`;
+                    }
+                }
+
+                const t = {
+                    deadlinePassed: lang === 'vi' ? '❌ Đã hết hạn' : '❌ Дедлайн прошёл',
+                    submitBy: lang === 'vi' ? 'Gửi trước:' : 'Подать до:',
+                    ready: lang === 'vi' ? 'Sẵn sàng:' : 'Будет готово:'
+                };
+
+                const optName = optionNames[opt.key][lang];
+
+                if (status === 'unavailable') {
+                    card.innerHTML = `
+                        <span class="option-name" style="color:#666">${optName}</span>
+                        <div class="deadline-info">
+                            <span class="deadline-main">${t.deadlinePassed}</span>
+                        </div>
+                        <span class="price" style="color:#666">$${price}</span>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <span class="option-name">${optName}</span>
+                        <div class="deadline-info">
+                            <span class="deadline-main">${t.submitBy} <strong>${deadlineText}</strong></span>
+                            <span class="deadline-sub">${t.ready} <strong>${resultInfo}</strong></span>
+                            <span class="deadline-sub" style="color: ${status === 'urgent' ? '#fbbf24' : '#888'}">${timeLeftText}</span>
+                        </div>
+                        <span class="price">$${price}</span>
+                    `;
+                }
+                optionsDiv.appendChild(card);
+            });
+
+            resultsDiv.classList.add('visible');
+        }
+
+        // --- Режим 2: Когда подаю → Когда будет готово ---
+        function calculateVisaReverse() {
+            const dateInput = document.getElementById('calc-submit-date').value;
+            const timeInput = document.getElementById('calc-submit-time').value;
+            const region = document.getElementById('calc-submit-region').value;
+
+            if (!dateInput || !timeInput) return;
+
+            let submitDate = new Date(dateInput + 'T' + timeInput);
+            const originalDate = new Date(submitDate);
+            const isSubmitWeekend = isWeekend(submitDate);
+
+            if (isSubmitWeekend) {
+                submitDate = addWorkdays(submitDate, 1);
+                submitDate.setHours(8, 0, 0, 0);
+            }
+
+            const submitMinutes = submitDate.getHours() * 60 + submitDate.getMinutes();
+            const options = visaOptions[region];
+            const prices = clientPrices[region];
+
+            const weekendWarning = document.getElementById('weekend-warning-submit');
+            const tetWarningSubmit = document.getElementById('tet-warning-submit');
+            const isSubmitTet = isTetHoliday(new Date(dateInput + 'T00:00:00'));
+            weekendWarning.classList.toggle('visible', isSubmitWeekend && !isSubmitTet);
+            tetWarningSubmit.classList.toggle('visible', isSubmitTet || isTetHoliday(submitDate));
+            if (isSubmitWeekend || isSubmitTet) {
+                const lang = getLang();
+                const nextWorkText = formatDate(submitDate, lang);
+                if (isSubmitTet) {
+                    document.getElementById('tet-warning-submit-text').textContent =
+                        lang === 'vi'
+                            ? `Tết 2026! Cục XNC nghỉ 14–22/02. Sẽ xử lý vào ${nextWorkText}`
+                            : `Тет 2026! Миграционная служба не работает 14–22 февраля. В работу пойдёт ${nextWorkText}`;
+                } else {
+                    document.getElementById('weekend-warning-submit-text').textContent =
+                        lang === 'vi'
+                            ? `Cuối tuần — sẽ xử lý vào ${nextWorkText}`
+                            : `Выходной — в работу пойдёт ${nextWorkText}`;
+                }
+            }
+
+            const resultsDiv = document.getElementById('calc-results');
+            const optionsDiv = document.getElementById('calc-options');
+            optionsDiv.innerHTML = '';
+
+            const lang = getLang();
+            const results = [];
+
+            const MORNING_START = 8 * 60;
+            const MORNING_END = region === 'south' ? 10 * 60 : 11 * 60;
+            const EVENING_START = 13 * 60 + 30;
+            const EVENING_END = region === 'south' ? 16 * 60 : 17 * 60 + 30;
+
+            function calcDynamicResult(processingMinutes) {
+                let resDate = new Date(submitDate);
+                let resTime = 0;
+                let slot = '';
+
+                if (submitMinutes < MORNING_START) {
+                    resTime = MORNING_START + processingMinutes;
+                    if (resTime <= MORNING_END + 60) {
+                        slot = lang === 'vi' ? 'sáng' : 'утро';
+                    } else {
+                        resTime = EVENING_START + processingMinutes;
+                        slot = lang === 'vi' ? 'chiều' : 'вечер';
+                    }
+                } else if (submitMinutes <= MORNING_END) {
+                    resTime = submitMinutes + processingMinutes;
+                    if (resTime <= MORNING_END + 60) {
+                        slot = lang === 'vi' ? 'sáng' : 'утро';
+                    } else {
+                        resTime = EVENING_START + processingMinutes;
+                        slot = lang === 'vi' ? 'chiều' : 'вечер';
+                    }
+                } else if (submitMinutes < EVENING_START) {
+                    resTime = EVENING_START + processingMinutes;
+                    slot = lang === 'vi' ? 'chiều' : 'вечер';
+                } else if (submitMinutes <= EVENING_END) {
+                    resTime = submitMinutes + processingMinutes;
+                    if (resTime <= EVENING_END + 60) {
+                        slot = lang === 'vi' ? 'chiều' : 'вечер';
+                    } else {
+                        resDate = addWorkdays(resDate, 1);
+                        resTime = MORNING_START + processingMinutes;
+                        slot = lang === 'vi' ? 'sáng mai' : 'завтра утром';
+                    }
+                } else {
+                    resDate = addWorkdays(resDate, 1);
+                    resTime = MORNING_START + processingMinutes;
+                    slot = lang === 'vi' ? 'sáng mai' : 'завтра утром';
+                }
+
+                return { resDate, resTime, slot };
+            }
+
+            options.forEach(opt => {
+                const price = prices[opt.key];
+                let resultDate = null;
+                let resultTimeMinutes = 0;
+                let resultTimeRange = '';
+                let status = 'available';
+
+                if (opt.key === '1h') {
+                    const res = calcDynamicResult(60);
+                    resultDate = res.resDate;
+                    resultTimeMinutes = res.resTime;
+                    resultTimeRange = formatTime(res.resTime);
+                } else if (opt.key === '2h') {
+                    const res = calcDynamicResult(120);
+                    resultDate = res.resDate;
+                    resultTimeMinutes = res.resTime;
+                    resultTimeRange = formatTime(res.resTime);
+                } else {
+                    for (const slot of opt.slots) {
+                        if (submitMinutes <= slot.deadlineTime) {
+                            resultDate = new Date(submitDate);
+                            for (let i = 0; i < slot.daysOffset; i++) {
+                                resultDate = addWorkdays(resultDate, 1);
+                            }
+                            resultTimeMinutes = slot.resultTime;
+                            resultTimeRange = formatTime(slot.resultTime - 30) + '-' + formatTime(slot.resultTime);
+                            break;
+                        }
+                    }
+
+                    if (!resultDate) {
+                        const slot = opt.slots[0];
+                        resultDate = addWorkdays(submitDate, 1 + slot.daysOffset);
+                        resultTimeMinutes = slot.resultTime;
+                        resultTimeRange = formatTime(slot.resultTime - 30) + '-' + formatTime(slot.resultTime);
+                    }
+                }
+
+                let resultText = '';
+                if (resultDate) {
+                    resultText = formatDate(resultDate, lang) + ' ' + resultTimeRange;
+                }
+
+                // Проверяем дедлайн
+                const deadlineDateInput = document.getElementById('calc-submit-deadline').value;
+                const deadlineTimeInput = document.getElementById('calc-submit-deadline-time').value;
+                let tooLate = false;
+                if (deadlineDateInput && resultDate) {
+                    const deadlineTimeStr = deadlineTimeInput || '23:59';
+                    const deadline = new Date(deadlineDateInput + 'T' + deadlineTimeStr);
+                    const resultDateTime = new Date(resultDate);
+                    resultDateTime.setHours(Math.floor(resultTimeMinutes / 60), resultTimeMinutes % 60, 0, 0);
+                    if (resultDateTime > deadline) {
+                        tooLate = true;
+                    }
+                }
+
+                results.push({ opt, price, status, resultText, resultDate, resultTimeMinutes, tooLate });
+            });
+
+            const tariffOrder = { '1h': 1, '2h': 2, '4h': 3, '1d': 4, '2d': 5, '3d': 6, '4d': 7 };
+            results.sort((a, b) => {
+                if (a.status !== b.status) {
+                    return a.status === 'unavailable' ? 1 : -1;
+                }
+                return tariffOrder[a.opt.key] - tariffOrder[b.opt.key];
+            });
+
+            // Summary
+            const summaryDiv = document.getElementById('calc-summary');
+            const availableResults = results.filter(r => r.status !== 'unavailable');
+            if (availableResults.length > 0) {
+                const fastest = availableResults[0];
+                const fastestName = optionNames[fastest.opt.key][lang];
+                if (lang === 'vi') {
+                    summaryDiv.innerHTML = `<div class="calc-summary-text">
+                        📤 Gửi: <strong>${formatDate(submitDate, lang)}, ${formatTime(submitMinutes)}</strong><br>
+                        ⚡ Nhanh nhất: <strong>${fastestName}</strong> → sẵn sàng <strong>${fastest.resultText}</strong>
+                    </div>`;
+                } else {
+                    summaryDiv.innerHTML = `<div class="calc-summary-text">
+                        📤 Подача: <strong>${formatDate(submitDate, lang)}, ${formatTime(submitMinutes)}</strong><br>
+                        ⚡ Быстрее всего: <strong>${fastestName}</strong> → готово <strong>${fastest.resultText}</strong>
+                    </div>`;
+                }
+                summaryDiv.classList.add('visible');
+            } else {
+                if (lang === 'vi') {
+                    summaryDiv.innerHTML = `<div class="calc-summary-text" style="color: #ef4444;">
+                        📤 Gửi: <strong>${formatDate(submitDate, lang)}, ${formatTime(submitMinutes)}</strong><br>
+                        ❌ Thời gian này ngoài giờ làm việc
+                    </div>`;
+                } else {
+                    summaryDiv.innerHTML = `<div class="calc-summary-text" style="color: #ef4444;">
+                        📤 Подача: <strong>${formatDate(submitDate, lang)}, ${formatTime(submitMinutes)}</strong><br>
+                        ❌ Это время вне рабочих часов
+                    </div>`;
+                }
+                summaryDiv.classList.add('visible');
+            }
+
+            // Карточки
+            const t = {
+                unavailable: lang === 'vi' ? '❌ Không khả dụng' : '❌ Недоступно',
+                ready: lang === 'vi' ? 'Sẵn sàng:' : 'Готово:'
+            };
+
+            results.forEach(({ opt, price, status, resultText, tooLate }) => {
+                const card = document.createElement('div');
+                card.className = 'calc-result-card ' + status;
+                if (tooLate) card.style.opacity = '0.45';
+
+                const optName = optionNames[opt.key][lang];
+                const lateTag = tooLate
+                    ? (lang === 'vi' ? ' <span style="color:#ef4444;font-size:0.8em">⏰ không kịp</span>' : ' <span style="color:#ef4444;font-size:0.8em">⏰ не успеет</span>')
+                    : '';
+
+                if (status === 'unavailable') {
+                    card.innerHTML = `
+                        <span class="option-name" style="color:#666">${optName}</span>
+                        <div class="deadline-info">
+                            <span class="deadline-main">${t.unavailable}</span>
+                        </div>
+                        <span class="price" style="color:#666">$${price}</span>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <span class="option-name">${optName}${lateTag}</span>
+                        <div class="deadline-info">
+                            <span class="deadline-main">${t.ready} <strong>${resultText}</strong></span>
+                        </div>
+                        <span class="price">$${price}</span>
+                    `;
+                }
+                optionsDiv.appendChild(card);
+            });
+
+            resultsDiv.classList.add('visible');
+        }
+
+        // --- Переключение режимов ---
+        let currentCalcMode = 'arrival';
+
+        function switchCalcMode(mode) {
+            currentCalcMode = mode;
+
+            document.querySelectorAll('.calc-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.mode === mode);
+            });
+
+            document.getElementById('calc-mode-arrival').style.display = mode === 'arrival' ? 'block' : 'none';
+            document.getElementById('calc-mode-submit').style.display = mode === 'submit' ? 'block' : 'none';
+
+            document.getElementById('weekend-warning').style.display = mode === 'arrival' ? '' : 'none';
+            document.getElementById('tet-warning').style.display = mode === 'arrival' ? '' : 'none';
+            document.getElementById('weekend-warning-submit').style.display = mode === 'submit' ? '' : 'none';
+            document.getElementById('tet-warning-submit').style.display = mode === 'submit' ? '' : 'none';
+            document.getElementById('weekend-warning').classList.remove('visible');
+            document.getElementById('weekend-warning-submit').classList.remove('visible');
+            document.getElementById('tet-warning').classList.remove('visible');
+            document.getElementById('tet-warning-submit').classList.remove('visible');
+
+            document.getElementById('calc-summary').innerHTML = '';
+            document.getElementById('calc-options').innerHTML = '';
+
+            if (mode === 'arrival') {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('calc-date').value = formatLocalDate(tomorrow);
+                calculateVisa();
+            } else {
+                const today = new Date();
+                document.getElementById('calc-submit-date').value = formatLocalDate(today);
+                calculateVisaReverse();
+            }
+        }
+
+        // --- Автопересчёт ---
+        let calcTimeout = null;
+        function autoCalculate() {
+            clearTimeout(calcTimeout);
+            calcTimeout = setTimeout(() => {
+                if (currentCalcMode === 'arrival') {
+                    const dateVal = document.getElementById('calc-date').value;
+                    const timeVal = document.getElementById('calc-time').value;
+                    if (dateVal && timeVal) calculateVisa();
+                } else {
+                    const dateVal = document.getElementById('calc-submit-date').value;
+                    const timeVal = document.getElementById('calc-submit-time').value;
+                    if (dateVal && timeVal) calculateVisaReverse();
+                }
+            }, 1500);
+        }
+
+        // --- Инициализация ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('calc-date').addEventListener('input', autoCalculate);
+            document.getElementById('calc-time').addEventListener('input', autoCalculate);
+            document.getElementById('calc-region').addEventListener('change', calculateVisa);
+
+            document.getElementById('calc-submit-date').addEventListener('input', autoCalculate);
+            document.getElementById('calc-submit-time').addEventListener('input', autoCalculate);
+            document.getElementById('calc-submit-region').addEventListener('change', calculateVisaReverse);
+            document.getElementById('calc-submit-deadline').addEventListener('input', calculateVisaReverse);
+            document.getElementById('calc-submit-deadline-time').addEventListener('input', calculateVisaReverse);
+
+            document.querySelectorAll('.calc-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchCalcMode(tab.dataset.mode));
+            });
+        });
+
+        window.addEventListener('load', () => {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('calc-date').value = formatLocalDate(tomorrow);
+
+            const today = new Date();
+            document.getElementById('calc-submit-date').value = formatLocalDate(today);
+
+            setTimeout(calculateVisa, 100);
+        });
+    </script>
+</body>
+</html>
